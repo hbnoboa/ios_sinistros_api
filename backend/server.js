@@ -34,6 +34,12 @@ const MONGODB_URI = process.env.MONGODB_URI;
 app.use(express.json());
 app.use(cors());
 
+// helper para mapear params para req.<name>
+const setParam = (name) => (req, res, next) => {
+  if (req.params && req.params[name]) req[name] = req.params[name];
+  next();
+};
+
 // --- INÍCIO: Servir o frontend em produção ---
 if (process.env.NODE_ENV === "production") {
   // Serve os arquivos estáticos da build do React
@@ -66,30 +72,21 @@ app.use(
   "/api/attendances/:attendanceId/regulators",
   auth,
   auditLog,
-  (req, res, next) => {
-    req.attendanceId = req.params.attendanceId;
-    next();
-  },
+  setParam("attendanceId"),
   regulatorRoute
 );
 app.use(
   "/api/attendances/:attendanceId/interactions",
   auth,
   auditLog,
-  (req, res, next) => {
-    req.attendanceId = req.params.attendanceId;
-    next();
-  },
+  setParam("attendanceId"),
   interactionRoute
 );
 app.use(
   "/api/attendances/:attendanceId/victims",
   auth,
   auditLog,
-  (req, res, next) => {
-    req.attendanceId = req.params.attendanceId;
-    next();
-  },
+  setParam("attendanceId"),
   victimRoute
 );
 
@@ -98,10 +95,7 @@ app.use(
   "/api/shipping_companies/:shippingCompanyId/drivers",
   auth,
   auditLog,
-  (req, res, next) => {
-    req.shippingCompanyId = req.params.shippingCompanyId;
-    next();
-  },
+  setParam("shippingCompanyId"),
   driverRoute
 );
 
@@ -111,30 +105,21 @@ app.use(
   "/api/insureds/:insuredId/branches",
   auth,
   auditLog,
-  (req, res, next) => {
-    req.insuredId = req.params.insuredId;
-    next();
-  },
+  setParam("insuredId"),
   branchRoute
 );
 app.use(
   "/api/insureds/:insuredId/contacts",
   auth,
   auditLog,
-  (req, res, next) => {
-    req.insuredId = req.params.insuredId;
-    next();
-  },
+  setParam("insuredId"),
   contactRoute
 );
 app.use(
   "/api/insureds/:insuredId/policies",
   auth,
   auditLog,
-  (req, res, next) => {
-    req.insuredId = req.params.insuredId;
-    next();
-  },
+  setParam("insuredId"),
   policyRoute
 );
 
