@@ -1,0 +1,45 @@
+.dark-theme table {
+  background-color: #232323 !important;
+  color: #fff !important;
+}
+.dark-theme th,
+.dark-theme td {
+  background-color: #232323 !important;
+  color: #fff !important;
+  border-color: #444 !important;
+}
+.dark-theme thead {
+  background-color: #181818 !important;
+}
+
+.dark-theme input,
+.dark-theme select,
+.dark-theme textarea,
+.dark-theme .form-control,
+.dark-theme .form-select,
+.dark-theme .css-13cymwt-control, /* react-select */
+.dark-theme .css-t3ipsp-control {
+  background-color: #232323 !important;
+  color: #fff !important;
+  border-color: #444 !important;
+}
+
+.dark-theme label,
+.dark-theme .form-label {
+  color: #fff !important;
+}
+
+.dark-theme .form-check-label {
+  color: #fff !important;
+}
+
+.dark-theme .form-check-input {
+  background-color: #232323 !important;
+  border-color: #444 !important;
+}
+
+.dark-theme .css-1nmdiq5-menu {
+  /* react-select dropdown */
+  background-color: #232323 !important;
+  color: #fff !important;
+}
