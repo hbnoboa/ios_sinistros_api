@@ -66,27 +66,76 @@ app.use(
   "/api/attendances/:attendanceId/regulators",
   auth,
   auditLog,
+  (req, res, next) => {
+    req.attendanceId = req.params.attendanceId;
+    next();
+  },
   regulatorRoute
 );
 app.use(
   "/api/attendances/:attendanceId/interactions",
   auth,
   auditLog,
+  (req, res, next) => {
+    req.attendanceId = req.params.attendanceId;
+    next();
+  },
   interactionRoute
 );
-app.use("/api/attendances/:attendanceId/victims", auth, auditLog, victimRoute);
+app.use(
+  "/api/attendances/:attendanceId/victims",
+  auth,
+  auditLog,
+  (req, res, next) => {
+    req.attendanceId = req.params.attendanceId;
+    next();
+  },
+  victimRoute
+);
 
 app.use("/api/shipping_companies", auth, auditLog, shippingCompanyRoute);
 app.use(
   "/api/shipping_companies/:shippingCompanyId/drivers",
   auth,
   auditLog,
+  (req, res, next) => {
+    req.shippingCompanyId = req.params.shippingCompanyId;
+    next();
+  },
   driverRoute
 );
 
 app.use("/api/insureds", auth, auditLog, insuredRoute);
-app.use("/api/insureds/:insuredId/branches", auth, auditLog, branchRoute);
-app.use("/api/insureds/:insuredId/contacts", auth, auditLog, contactRoute);
-app.use("/api/insureds/:insuredId/policies", auth, auditLog, policyRoute);
+
+app.use(
+  "/api/insureds/:insuredId/branches",
+  auth,
+  auditLog,
+  (req, res, next) => {
+    req.insuredId = req.params.insuredId;
+    next();
+  },
+  branchRoute
+);
+app.use(
+  "/api/insureds/:insuredId/contacts",
+  auth,
+  auditLog,
+  (req, res, next) => {
+    req.insuredId = req.params.insuredId;
+    next();
+  },
+  contactRoute
+);
+app.use(
+  "/api/insureds/:insuredId/policies",
+  auth,
+  auditLog,
+  (req, res, next) => {
+    req.insuredId = req.params.insuredId;
+    next();
+  },
+  policyRoute
+);
 
 app.use("/api/settingLists", auth, auditLog, settingListRoute);
