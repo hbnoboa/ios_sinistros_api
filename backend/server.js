@@ -3,7 +3,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const http = require("http");
 const socketIo = require("socket.io");
-const path = require("path"); // Adicione esta linha
+const path = require("path");
 
 require("dotenv").config();
 
@@ -41,14 +41,26 @@ mongoose
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
-app.use("/api/auth", authRoute);
-app.use("/api/image", imageRoute);
-app.use("/api/face", faceRoute);
+// Wrapper para capturar erros de rotas
+const safeUse = (path, ...handlers) => {
+  try {
+    app.use(path, ...handlers);
+  } catch (err) {
+    console.error(`Erro ao registrar rota: ${path}`);
+    console.error(err.stack || err);
+    process.exit(1); // Encerra para facilitar o diagnóstico
+  }
+};
 
-app.use("/api/audit-logs", auth, auditLogRoute);
+// Substituir app.use por safeUse
+safeUse("/api/auth", authRoute);
+safeUse("/api/image", imageRoute);
+safeUse("/api/face", faceRoute);
 
-app.use("/api/attendances", auth, auditLog, attendanceRoute);
-app.use(
+safeUse("/api/audit-logs", auth, auditLogRoute);
+
+safeUse("/api/attendances", auth, auditLog, attendanceRoute);
+safeUse(
   "/api/attendances/:attendanceId/regulators",
   auth,
   auditLog,
@@ -58,7 +70,7 @@ app.use(
   },
   regulatorRoute
 );
-app.use(
+safeUse(
   "/api/attendances/:attendanceId/interactions",
   auth,
   auditLog,
@@ -68,7 +80,7 @@ app.use(
   },
   interactionRoute
 );
-app.use(
+safeUse(
   "/api/attendances/:attendanceId/victims",
   auth,
   auditLog,
@@ -79,8 +91,8 @@ app.use(
   victimRoute
 );
 
-app.use("/api/shipping_companies", auth, auditLog, shippingCompanyRoute);
-app.use(
+safeUse("/api/shipping_companies", auth, auditLog, shippingCompanyRoute);
+safeUse(
   "/api/shipping_companies/:shippingCompanyId/drivers",
   auth,
   auditLog,
@@ -91,9 +103,9 @@ app.use(
   driverRoute
 );
 
-app.use("/api/insureds", auth, auditLog, insuredRoute);
+safeUse("/api/insureds", auth, auditLog, insuredRoute);
 
-app.use(
+safeUse(
   "/api/insureds/:insuredId/branches",
   auth,
   auditLog,
@@ -103,7 +115,7 @@ app.use(
   },
   branchRoute
 );
-app.use(
+safeUse(
   "/api/insureds/:insuredId/contacts",
   auth,
   auditLog,
@@ -113,7 +125,7 @@ app.use(
   },
   contactRoute
 );
-app.use(
+safeUse(
   "/api/insureds/:insuredId/policies",
   auth,
   auditLog,
@@ -124,7 +136,7 @@ app.use(
   policyRoute
 );
 
-app.use("/api/settingLists", auth, auditLog, settingListRoute);
+safeUse("/api/settingLists", auth, auditLog, settingListRoute);
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "frontend/build")));
