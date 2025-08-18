@@ -61,28 +61,40 @@ mongoose
 
 server.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
 
-app.use("/api/auth", authRoute);
-app.use("/api/image", imageRoute);
-app.use("/api/face", faceRoute);
+// safeUse: registra rotas e loga erro com o path que causou a falha
+const safeUse = (path, ...handlers) => {
+  try {
+    app.use(path, ...handlers);
+  } catch (err) {
+    console.error("Route registration failed for path:", path);
+    console.error(err && err.stack ? err.stack : err);
+    // encerra para que Heroku mostre o erro — remova se preferir continuar sem a rota
+    process.exit(1);
+  }
+};
 
-app.use("/api/audit-logs", auth, auditLogRoute);
+safeUse("/api/auth", authRoute);
+safeUse("/api/image", imageRoute);
+safeUse("/api/face", faceRoute);
 
-app.use("/api/attendances", auth, auditLog, attendanceRoute);
-app.use(
+safeUse("/api/audit-logs", auth, auditLogRoute);
+
+safeUse("/api/attendances", auth, auditLog, attendanceRoute);
+safeUse(
   "/api/attendances/:attendanceId/regulators",
   auth,
   auditLog,
   setParam("attendanceId"),
   regulatorRoute
 );
-app.use(
+safeUse(
   "/api/attendances/:attendanceId/interactions",
   auth,
   auditLog,
   setParam("attendanceId"),
   interactionRoute
 );
-app.use(
+safeUse(
   "/api/attendances/:attendanceId/victims",
   auth,
   auditLog,
@@ -90,8 +102,8 @@ app.use(
   victimRoute
 );
 
-app.use("/api/shipping_companies", auth, auditLog, shippingCompanyRoute);
-app.use(
+safeUse("/api/shipping_companies", auth, auditLog, shippingCompanyRoute);
+safeUse(
   "/api/shipping_companies/:shippingCompanyId/drivers",
   auth,
   auditLog,
@@ -99,23 +111,23 @@ app.use(
   driverRoute
 );
 
-app.use("/api/insureds", auth, auditLog, insuredRoute);
+safeUse("/api/insureds", auth, auditLog, insuredRoute);
 
-app.use(
+safeUse(
   "/api/insureds/:insuredId/branches",
   auth,
   auditLog,
   setParam("insuredId"),
   branchRoute
 );
-app.use(
+safeUse(
   "/api/insureds/:insuredId/contacts",
   auth,
   auditLog,
   setParam("insuredId"),
   contactRoute
 );
-app.use(
+safeUse(
   "/api/insureds/:insuredId/policies",
   auth,
   auditLog,
@@ -123,4 +135,4 @@ app.use(
   policyRoute
 );
 
-app.use("/api/settingLists", auth, auditLog, settingListRoute);
+safeUse("/api/settingLists", auth, auditLog, settingListRoute);
