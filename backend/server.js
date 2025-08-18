@@ -3,7 +3,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const http = require("http");
 const socketIo = require("socket.io");
-const path = require("path");
+const path = require("path"); // Adicione esta linha
 
 require("dotenv").config();
 
@@ -34,6 +34,18 @@ const MONGODB_URI = process.env.MONGODB_URI;
 app.use(express.json());
 app.use(cors());
 
+// --- INÍCIO: Servir o frontend em produção ---
+if (process.env.NODE_ENV === "production") {
+  // Serve os arquivos estáticos da build do React
+  app.use(express.static(path.join(__dirname, "frontend/build")));
+
+  // Para qualquer outra rota, serve o index.html do React
+  app.get("*", (req, res) => {
+    res.sendFile(path.resolve(__dirname, "frontend/build", "index.html"));
+  });
+}
+// --- FIM: Servir o frontend em produção ---
+
 app.set("io", io);
 
 mongoose
@@ -41,116 +53,40 @@ mongoose
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
-// Wrapper para capturar erros de rotas
-const safeUse = (path, ...handlers) => {
-  try {
-    app.use(path, ...handlers);
-  } catch (err) {
-    console.error(`Erro ao registrar rota: ${path}`);
-    console.error(err.stack || err);
-    process.exit(1); // Encerra para facilitar o diagnóstico
-  }
-};
+server.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
 
-// Substituir app.use por safeUse
-safeUse("/api/auth", authRoute);
-safeUse("/api/image", imageRoute);
-safeUse("/api/face", faceRoute);
+app.use("/api/auth", authRoute);
+app.use("/api/image", imageRoute);
+app.use("/api/face", faceRoute);
 
-safeUse("/api/audit-logs", auth, auditLogRoute);
+app.use("/api/audit-logs", auth, auditLogRoute);
 
-safeUse("/api/attendances", auth, auditLog, attendanceRoute);
-safeUse(
+app.use("/api/attendances", auth, auditLog, attendanceRoute);
+app.use(
   "/api/attendances/:attendanceId/regulators",
   auth,
   auditLog,
-  (req, res, next) => {
-    req.attendanceId = req.params.attendanceId;
-    next();
-  },
   regulatorRoute
 );
-safeUse(
+app.use(
   "/api/attendances/:attendanceId/interactions",
   auth,
   auditLog,
-  (req, res, next) => {
-    req.attendanceId = req.params.attendanceId;
-    next();
-  },
   interactionRoute
 );
-safeUse(
-  "/api/attendances/:attendanceId/victims",
-  auth,
-  auditLog,
-  (req, res, next) => {
-    req.attendanceId = req.params.attendanceId;
-    next();
-  },
-  victimRoute
-);
+app.use("/api/attendances/:attendanceId/victims", auth, auditLog, victimRoute);
 
-safeUse("/api/shipping_companies", auth, auditLog, shippingCompanyRoute);
-safeUse(
+app.use("/api/shipping_companies", auth, auditLog, shippingCompanyRoute);
+app.use(
   "/api/shipping_companies/:shippingCompanyId/drivers",
   auth,
   auditLog,
-  (req, res, next) => {
-    req.shippingCompanyId = req.params.shippingCompanyId;
-    next();
-  },
   driverRoute
 );
 
-safeUse("/api/insureds", auth, auditLog, insuredRoute);
+app.use("/api/insureds", auth, auditLog, insuredRoute);
+app.use("/api/insureds/:insuredId/branches", auth, auditLog, branchRoute);
+app.use("/api/insureds/:insuredId/contacts", auth, auditLog, contactRoute);
+app.use("/api/insureds/:insuredId/policies", auth, auditLog, policyRoute);
 
-safeUse(
-  "/api/insureds/:insuredId/branches",
-  auth,
-  auditLog,
-  (req, res, next) => {
-    req.insuredId = req.params.insuredId;
-    next();
-  },
-  branchRoute
-);
-safeUse(
-  "/api/insureds/:insuredId/contacts",
-  auth,
-  auditLog,
-  (req, res, next) => {
-    req.insuredId = req.params.insuredId;
-    next();
-  },
-  contactRoute
-);
-safeUse(
-  "/api/insureds/:insuredId/policies",
-  auth,
-  auditLog,
-  (req, res, next) => {
-    req.insuredId = req.params.insuredId;
-    next();
-  },
-  policyRoute
-);
-
-safeUse("/api/settingLists", auth, auditLog, settingListRoute);
-
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "frontend/build")));
-  app.get("*", (req, res) => {
-    res.sendFile(path.resolve(__dirname, "frontend/build", "index.html"));
-  });
-}
-
-server.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
-
-io.on("connection", (socket) => {
-  console.log("Novo cliente conectado:", socket.id);
-
-  socket.on("disconnect", () => {
-    console.log("Cliente desconectado:", socket.id);
-  });
-});
+app.use("/api/settingLists", auth, auditLog, settingListRoute);
