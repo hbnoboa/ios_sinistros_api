@@ -8,7 +8,7 @@ const ConfirmEmail = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/auth/confirm/${token}`)
+    fetch(`/api/auth/confirm/${token}`)
       .then((res) => res.json())
       .then((data) => {
         if (
