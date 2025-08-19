@@ -34,26 +34,12 @@ const MONGODB_URI = process.env.MONGODB_URI;
 app.use(express.json());
 app.use(cors());
 
-// --- INÍCIO: Servir o frontend em produção ---
-if (process.env.NODE_ENV === "production") {
-  // Serve os arquivos estáticos da build do React
-  app.use(express.static(path.join(__dirname, "frontend/build")));
-
-  // Para qualquer outra rota, serve o index.html do React
-  app.get("*", (req, res) => {
-    res.sendFile(path.resolve(__dirname, "frontend/build", "index.html"));
-  });
-}
-// --- FIM: Servir o frontend em produção ---
-
 app.set("io", io);
 
 mongoose
   .connect(MONGODB_URI)
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
-
-server.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
 
 app.use("/api/auth", authRoute);
 app.use("/api/image", imageRoute);
@@ -139,3 +125,24 @@ app.use(
 );
 
 app.use("/api/settingLists", auth, auditLog, settingListRoute);
+
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "frontend/build")));
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "frontend/build", "index.html"));
+  });
+}
+
+app.use((req, res) => {
+  res.status(404).json({ error: "Rota não encontrada" });
+});
+
+server.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+
+io.on("connection", (socket) => {
+  console.log("Novo cliente conectado:", socket.id);
+
+  socket.on("disconnect", () => {
+    console.log("Cliente desconectado:", socket.id);
+  });
+});
