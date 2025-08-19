@@ -100,6 +100,7 @@ exports.signin = async (req, res) => {
       JWT_SECRET
     ); // no expiresIn
     res.json({ token });
+    console.log(token);
   } catch {
     res.status(400).json({ error: "Erro ao autenticar" });
   }

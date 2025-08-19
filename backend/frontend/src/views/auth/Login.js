@@ -32,17 +32,15 @@ const Login = () => {
       });
       const data = await res.json();
       if (res.ok && data.token) {
-        try {
-          await login(data.token); // espera /api/auth/me e setUser
-          setMessage("Login realizado!");
-          navigate("/"); // navega imediatamente quando user estiver carregado
-        } catch {
-          setMessage("Erro ao validar usuário após login.");
-        }
+        login(data.token);
+        setMessage("Login realizado!");
+        setTimeout(() => navigate("/"), 1000);
       } else {
-        setMessage(data.error || "Erro ao entrar.");
+        console.error("Signin failed:", { status: res.status, body: data });
+        setMessage(data.error || `Erro ao entrar (status ${res.status}).`);
       }
-    } catch {
+    } catch (err) {
+      console.error("Network or unexpected error during signin:", err);
       setMessage("Erro ao entrar.");
     }
   };
