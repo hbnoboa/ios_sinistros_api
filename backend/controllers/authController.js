@@ -65,21 +65,34 @@ exports.signup = async (req, res) => {
 
 exports.confirm = async (req, res) => {
   const { token } = req.params;
+  const wantsJson =
+    (req.get("Accept") && req.get("Accept").includes("application/json")) ||
+    req.xhr;
+
   try {
     const { email } = jwt.verify(token, JWT_SECRET);
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ error: "Usuário não encontrado" });
+    if (!user) {
+      if (!wantsJson)
+        return res.redirect(`${APP_URL}/confirm?status=not_found`);
+      return res.status(400).json({ error: "Usuário não encontrado" });
+    }
     if (user.confirmed) {
+      if (!wantsJson) return res.redirect(`${APP_URL}/login?confirmed=1`);
       return res.json({ message: "Email já confirmado. Você já pode entrar." });
     }
     if (user.confirmationToken !== token) {
+      if (!wantsJson) return res.redirect(`${APP_URL}/confirm?status=invalid`);
       return res.status(400).json({ error: "Token inválido" });
     }
     user.confirmed = true;
     user.confirmationToken = null;
     await user.save();
+    if (!wantsJson) return res.redirect(`${APP_URL}/login?confirmed=1`);
     res.json({ message: "Email confirmado. Você já pode entrar." });
   } catch {
+    if (!wantsJson)
+      return res.redirect(`${APP_URL}/confirm?status=invalid_or_expired`);
     res.status(400).json({ error: "Token inválido ou expirado" });
   }
 };
