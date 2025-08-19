@@ -15,6 +15,7 @@ import {
   Title,
 } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
+import { io } from "socket.io-client";
 
 // Registre os elementos necessários para Bar e Pie
 Chart.register(
@@ -33,13 +34,64 @@ const AttendanceDashboard = () => {
   const [filter, setFilter] = useState(null); // { type, value }
 
   useEffect(() => {
+    // fetch initial data
     fetch("/api/attendances?limit=10000", {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
     })
       .then((res) => res.json())
-      .then((data) => setAttendances(data.attendances || []));
+      .then((data) => setAttendances(data.attendances || []))
+      .catch((err) => console.error("fetch attendances error:", err));
+
+    // connect socket.io
+    const socketUrl = window.location.origin; // same origin; adjust if backend is on different host
+    const socket = io(socketUrl, {
+      transports: ["websocket"],
+      // if you need auth token on connect:
+      // auth: { token: localStorage.getItem("token") }
+    });
+
+    const onCreated = (data) => {
+      if (!data || !data._id) return;
+      setAttendances((prev) => {
+        const exists = prev.find((p) => String(p._id) === String(data._id));
+        if (exists)
+          return prev.map((p) =>
+            String(p._id) === String(data._id) ? data : p
+          );
+        return [data, ...prev];
+      });
+    };
+
+    const onUpdated = (data) => {
+      if (!data || !data._id) return;
+      setAttendances((prev) =>
+        prev.map((p) => (String(p._id) === String(data._id) ? data : p))
+      );
+    };
+
+    const onDeleted = (data) => {
+      if (!data || !data._id) return;
+      setAttendances((prev) =>
+        prev.filter((p) => String(p._id) !== String(data._id))
+      );
+    };
+
+    socket.on("attendanceCreated", onCreated);
+    socket.on("attendanceUpdated", onUpdated);
+    socket.on("attendanceDeleted", onDeleted);
+
+    socket.on("connect_error", (err) => {
+      console.warn("Socket connect_error:", err);
+    });
+
+    return () => {
+      socket.off("attendanceCreated", onCreated);
+      socket.off("attendanceUpdated", onUpdated);
+      socket.off("attendanceDeleted", onDeleted);
+      socket.disconnect();
+    };
   }, []);
 
   // Helpers
