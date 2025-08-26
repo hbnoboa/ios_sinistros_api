@@ -14,14 +14,11 @@ const DriverEdit = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch(
-      `http://192.168.15.67:5000/api/shipping_companies/${shippingCompanyId}/drivers/${id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      }
-    )
+    fetch(`/api/shipping_companies/${shippingCompanyId}/drivers/${id}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    })
       .then((res) => res.json())
       .then((data) => {
         if (data.data?.driver)
@@ -46,7 +43,7 @@ const DriverEdit = () => {
       plates: form.plates.split(",").map((p) => p.trim()),
     };
     const res = await fetch(
-      `http://192.168.15.67:5000/api/shipping_companies/${shippingCompanyId}/drivers/${id}`,
+      `/api/shipping_companies/${shippingCompanyId}/drivers/${id}`,
       {
         method: "PUT",
         headers: {

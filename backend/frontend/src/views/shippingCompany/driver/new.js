@@ -25,7 +25,7 @@ const DriverNew = () => {
       plates: form.plates.split(",").map((p) => p.trim()),
     };
     const res = await fetch(
-      `http://192.168.15.67:5000/api/shipping_companies/${shippingCompanyId}/drivers`,
+      `/api/shipping_companies/${shippingCompanyId}/drivers`,
       {
         method: "POST",
         headers: {

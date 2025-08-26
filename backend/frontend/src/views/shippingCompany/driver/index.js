@@ -6,14 +6,11 @@ const DriverIndex = ({ shippingCompanyId }) => {
   const [drivers, setDrivers] = useState([]);
 
   useEffect(() => {
-    fetch(
-      `http://192.168.15.67:5000/api/shipping_companies/${shippingCompanyId}/drivers`,
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      }
-    )
+    fetch(`/api/shipping_companies/${shippingCompanyId}/drivers`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    })
       .then((res) => res.json())
       .then((data) => setDrivers(data.drivers || []));
   }, [shippingCompanyId]);
@@ -80,7 +77,7 @@ const DriverIndex = ({ shippingCompanyId }) => {
                       )
                     ) {
                       await fetch(
-                        `http://192.168.15.67:5000/api/shippingCompanies/${shippingCompanyId}/drivers/${driver._id}`,
+                        `/api/shippingCompanies/${shippingCompanyId}/drivers/${driver._id}`,
                         {
                           method: "DELETE",
                         }
