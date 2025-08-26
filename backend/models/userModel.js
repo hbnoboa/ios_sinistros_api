@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema(
       enum: ["Admin", "Manager", "Operator", "User"],
       default: "User",
     },
+    companies: [{ type: mongoose.Schema.Types.ObjectId, ref: "Company" }],
     faceDescriptor: { type: [Number], required: false },
   },
   { timestamps: true }
