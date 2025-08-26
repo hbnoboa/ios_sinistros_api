@@ -46,7 +46,11 @@ module.exports.getAttachment = (req, res) => {
 
 // Create a new attachment for an attendance
 module.exports.postAttachment = (req, res) => {
-  Attachment.create({ ...req.body, attendance: req.params.attendanceId })
+  Attachment.create({
+    ...req.body,
+    attendance: req.params.attendanceId,
+    company: req.companyId,
+  })
     .then((data) => {
       res.status(200).json({
         status: "attachment created",
