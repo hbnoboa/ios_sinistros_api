@@ -8,6 +8,7 @@ import Select from "react-select";
 const initialState = {
   insured_company: "",
   insured_name: "",
+  branch_name: "", // incluído
   fast_track: false,
   event_status: "PENDENTE DE DOC",
   comunicator_name: "",
@@ -26,7 +27,7 @@ const initialState = {
   loss_estimation: "",
   saved_value: "",
   shipping_company: "",
-  shipping_company_cnpj: "",
+  shipping_company_cnpj: "", // já existia no state
   driver_name: "",
   plates: "",
   origin_state: "",
@@ -114,8 +115,6 @@ const AttendanceEdit = () => {
   const [attachments, setAttachments] = useState({});
   const [shippingCompanies, setShippingCompanies] = useState([]);
   const [drivers, setDrivers] = useState([]);
-  // eslint-disable-next-line
-  const [selectedDriver, setSelectedDriver] = useState(null);
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -242,48 +241,41 @@ const AttendanceEdit = () => {
   }, []);
 
   useEffect(() => {
-    if (form.shipping_company) {
-      const company = shippingCompanies.find(
-        (c) => c.company_name === form.shipping_company
-      );
-      if (company && company._id) {
-        fetch(`/api/shipping_companies/${company._id}/drivers`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        })
-          .then((res) => res.json())
-          .then((data) => setDrivers(data.drivers || []));
-      } else {
-        setDrivers([]);
-      }
-      setForm((prev) => ({
-        ...prev,
-        driver_name: "",
-        plates: "",
-      }));
-      setSelectedDriver(null);
+    if (!form.shipping_company) {
+      setDrivers([]);
+      return;
+    }
+
+    const company = shippingCompanies.find(
+      (c) => c.company_name === form.shipping_company
+    );
+
+    if (company && company._id) {
+      fetch(`/api/shipping_companies/${company._id}/drivers`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => setDrivers(data.drivers || []));
     } else {
       setDrivers([]);
-      setForm((prev) => ({
-        ...prev,
-        driver_name: "",
-        plates: "",
-      }));
-      setSelectedDriver(null);
     }
+    // Importante: não limpar driver_name nem plates aqui
   }, [form.shipping_company, shippingCompanies]);
 
-  // Atualiza placas ao selecionar motorista
+  // Atualiza placas ao selecionar motorista (preserva se não achar)
   useEffect(() => {
-    if (form.driver_name && drivers.length > 0) {
-      const driver = drivers.find((d) => d.name === form.driver_name);
-      setSelectedDriver(driver || null);
+    if (!form.driver_name || drivers.length === 0) return;
+
+    const driver = drivers.find((d) => d.name === form.driver_name);
+    if (driver && Array.isArray(driver.plates)) {
       setForm((prev) => ({
         ...prev,
-        plates: driver && driver.plates ? driver.plates.join(", ") : "",
+        plates: driver.plates.join(", "),
       }));
     }
+    // se não achar o motorista nas opções, não mexe nas plates
     // eslint-disable-next-line
   }, [form.driver_name, drivers]);
 
@@ -460,6 +452,12 @@ const AttendanceEdit = () => {
   const removeVictim = (idx) => {
     setVictims(victims.filter((_, i) => i !== idx));
   };
+
+  // helper para lidar com Decimal128 ou string
+  const decimalValue = (v) =>
+    v && typeof v === "object" && "$numberDecimal" in v
+      ? v.$numberDecimal
+      : v || "";
 
   return (
     <div style={{ maxWidth: 600, margin: "40px auto" }}>
@@ -743,8 +741,10 @@ const AttendanceEdit = () => {
               <Form.Label>Valor da Carga</Form.Label>
               <Form.Control
                 type="number"
+                step="0.01"
+                inputMode="decimal"
                 name="load_value"
-                value={form.load_value.$numberDecimal}
+                value={decimalValue(form.load_value)}
                 onChange={handleChange}
               />
             </Form.Group>
@@ -752,8 +752,10 @@ const AttendanceEdit = () => {
               <Form.Label>Valor Segurado</Form.Label>
               <Form.Control
                 type="number"
+                step="0.01"
+                inputMode="decimal"
                 name="insurance_value"
-                value={form.insurance_value.$numberDecimal}
+                value={decimalValue(form.insurance_value)}
                 onChange={handleChange}
               />
             </Form.Group>
@@ -761,8 +763,10 @@ const AttendanceEdit = () => {
               <Form.Label>Estimativa de Prejuízo</Form.Label>
               <Form.Control
                 type="number"
+                step="0.01"
+                inputMode="decimal"
                 name="loss_estimation"
-                value={form.loss_estimation.$numberDecimal}
+                value={decimalValue(form.loss_estimation)}
                 onChange={handleChange}
               />
             </Form.Group>
@@ -770,8 +774,10 @@ const AttendanceEdit = () => {
               <Form.Label>Valor Recuperado</Form.Label>
               <Form.Control
                 type="number"
+                step="0.01"
+                inputMode="decimal"
                 name="saved_value"
-                value={form.saved_value.$numberDecimal}
+                value={decimalValue(form.saved_value)}
                 onChange={handleChange}
               />
             </Form.Group>
@@ -801,6 +807,18 @@ const AttendanceEdit = () => {
                 }
                 isClearable
                 placeholder="Selecione..."
+              />
+            </Form.Group>
+
+            {/* NOVO CAMPO: CNPJ da Transportadora */}
+            <Form.Group className="mb-3">
+              <Form.Label>CNPJ da Transportadora</Form.Label>
+              <Form.Control
+                type="text"
+                name="shipping_company_cnpj"
+                value={form.shipping_company_cnpj || ""}
+                onChange={handleChange}
+                placeholder="Ex: 12.345.678/0001-90"
               />
             </Form.Group>
             <Form.Group className="mb-3">
