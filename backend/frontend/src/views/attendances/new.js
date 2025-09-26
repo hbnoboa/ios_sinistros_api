@@ -742,6 +742,56 @@ const AttendanceNew = () => {
                 placeholder="Selecione..."
               />
             </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Valor da Carga</Form.Label>
+              <Form.Control
+                type="number"
+                step="0.01"
+                inputMode="decimal"
+                name="load_value"
+                value={form.load_value}
+                onChange={handleChange}
+                placeholder="Ex: 10000.00"
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Valor Segurado</Form.Label>
+              <Form.Control
+                type="number"
+                step="0.01"
+                inputMode="decimal"
+                name="insurance_value"
+                value={form.insurance_value}
+                onChange={handleChange}
+                placeholder="Ex: 8000.00"
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Estimativa de Prejuízo</Form.Label>
+              <Form.Control
+                type="number"
+                step="0.01"
+                inputMode="decimal"
+                name="loss_estimation"
+                value={form.loss_estimation}
+                onChange={handleChange}
+                placeholder="Ex: 1200.00"
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Valor Salvo</Form.Label>
+              <Form.Control
+                type="number"
+                step="0.01"
+                inputMode="decimal"
+                name="saved_value"
+                value={form.saved_value}
+                onChange={handleChange}
+                placeholder="Ex: 300.00"
+              />
+            </Form.Group>
+
             <Form.Group className="mb-3">
               <Form.Label>Transportadora</Form.Label>
               <Select
@@ -768,6 +818,18 @@ const AttendanceNew = () => {
                 }
                 isClearable
                 placeholder="Selecione..."
+              />
+            </Form.Group>
+
+            {/* NOVO CAMPO: CNPJ DA TRANSPORTADORA */}
+            <Form.Group className="mb-3">
+              <Form.Label>CNPJ da Transportadora</Form.Label>
+              <Form.Control
+                type="text"
+                name="shipping_company_cnpj"
+                value={form.shipping_company_cnpj}
+                onChange={handleChange}
+                placeholder="Ex: 12.345.678/0001-90"
               />
             </Form.Group>
 
